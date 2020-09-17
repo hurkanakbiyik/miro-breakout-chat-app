@@ -12,7 +12,6 @@
     let newMessageText: string = '';
 
     let chatController: ChatController = null;
-    console.log(messageList);
     let messages: Array<MessageInterface> = [...messageList.map(message => ({...message, createdAt: new Date(message.createdAt)}))];
     const handleNewMessage: MessageHandler = (text, author) => {
         messages = [...messages, { text, author, createdAt: new Date() }];
@@ -24,12 +23,23 @@
         chatController.sendMessage(newMessageText);
 
         newMessageText = '';
+        scrollToBottom();
 
         return false;
     }
 
+    const scrollToBottom = () => {
+      const scrollElement = document.querySelector('.sidebar__body');
+      if(scrollElement){
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
+    }
+
     onMount(() => {
         chatController = chatFactory({ roomId, author, messageHandler: handleNewMessage });
+    });
+    afterUpdate(() => {
+       scrollToBottom();
     });
 </script>
 
