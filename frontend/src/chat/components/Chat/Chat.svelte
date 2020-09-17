@@ -6,15 +6,16 @@
 
     export let chatFactory: (settings: ChatSettings) => ChatController;
     export let roomId: string;
-    export let name: string;
+    export let author: string;
+    export let messageList: Array<MessageInterface>;
 
     let newMessageText: string = '';
 
     let chatController: ChatController = null;
-
-    let messages: Array<MessageInterface> = [];
+    console.log(messageList);
+    let messages: Array<MessageInterface> = [...messageList.map(message => ({...message, createdAt: new Date(message.createdAt)}))];
     const handleNewMessage: MessageHandler = (text, author) => {
-        messages = [...messages, { text, author, timestamp: new Date() }];
+        messages = [...messages, { text, author, createdAt: new Date() }];
     }
 
     const handleMessageSend = () => {
@@ -28,7 +29,7 @@
     }
 
     onMount(() => {
-        chatController = chatFactory({ roomId, name, messageHandler: handleNewMessage });
+        chatController = chatFactory({ roomId, author, messageHandler: handleNewMessage });
     });
 </script>
 
@@ -46,11 +47,16 @@
     }
 
     .sidebar__body {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
         height: calc(100% - 120px);
         padding: 0 24px;
+        overflow: auto;
+    }
+
+    .sidebar__body__content{
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      min-height: 100%;
     }
 
     .sidebar__footer {
@@ -67,9 +73,11 @@
         <span class="miro-h2">Breakout Chat</span>
     </div>
     <div class="sidebar__body">
+      <div class="sidebar__body__content">
         {#each messages as message}
-            <Message message={message} />
+          <Message message={message} />
         {/each}
+      </div>
     </div>
     <div class="sidebar__footer">
         <form on:submit|preventDefault={handleMessageSend}>

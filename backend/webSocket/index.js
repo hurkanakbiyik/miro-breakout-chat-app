@@ -4,11 +4,11 @@ const messageService = require('../services/message.service');
 const socketConfig = require('../config');
 
 let roomId;
-let name;
+let author;
 
 const rooms = {};
 const roomsCreatedAt = new WeakMap();
-const names = new WeakMap();
+const authors = new WeakMap();
 
 function init(http) {
   if (!http) {
@@ -21,12 +21,12 @@ function init(http) {
         if (callback) {
           callback('roomId and name params required');
         }
-        console.warn(`${socket.id} attempting to connect without roomId or name`, { roomId, name });
+        console.warn(`${socket.id} attempting to connect without roomId or name`, { roomId, author });
         return;
       }
 
       roomId = _roomId;
-      name = _name;
+      author = _name;
 
       if (rooms[roomId]) {
         rooms[roomId][socket.id] = socket;
@@ -36,26 +36,26 @@ function init(http) {
       }
       socket.join(roomId);
 
-      names.set(socket, name);
+      authors.set(socket, author);
 
-      io.to(roomId).emit('system message', `${name} joined ${roomId}`);
+      io.to(roomId).emit('system message', `${author} joined ${roomId}`);
 
       if (callback) {
         callback(null, { success: true });
       }
     });
 
-    socket.on('chat message', (msg) => {
+    socket.on('chat message', (text) => {
       messageService
-        .save({ message: msg, roomId, name })
+        .save({ text, roomId, author, })
         .then((savedData) => {
           console.log(savedData);
-          io.to(roomId).emit('chat message', msg, name);
+          io.to(roomId).emit('chat message', text, author);
         });
     });
 
     socket.on('disconnect', () => {
-      io.to(roomId).emit('system message', `${name} left ${roomId}`);
+      io.to(roomId).emit('system message', `${author} left ${roomId}`);
 
       if (rooms[roomId] && rooms[roomId][socket.id]) {
         delete rooms[roomId][socket.id];
@@ -71,7 +71,7 @@ function init(http) {
 
 module.exports = {
   init,
-  names,
+  authors,
   rooms,
   roomsCreatedAt,
 };

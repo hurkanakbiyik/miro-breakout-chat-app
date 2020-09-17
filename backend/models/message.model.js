@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const Message = new Schema({
-  message: String,
+  text: String,
   roomId: String,
-  name: String,
-}, { timestamps: { createdAt: 'created_at' } });
+  author: String,
+}, { timestamps: { createdAt: 'createdAt' } });
 
 module.exports = mongoose.model('Message', Message);
